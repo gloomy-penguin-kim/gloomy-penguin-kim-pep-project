@@ -7,6 +7,7 @@ import java.sql.*;
 
 public class AccountDAO { 
 
+    // Log into account with Account object
     public Account loginWithAccount(Account account) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 
@@ -27,6 +28,7 @@ public class AccountDAO {
         return null;
     } 
 
+    // Log into account with String username and String password 
     public Account loginWithUsernameAndPassword(String username, String password) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 
@@ -47,6 +49,7 @@ public class AccountDAO {
         return null;
     }
 
+    // Register a new account
     public Account accountRegister(Account account) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 
@@ -69,6 +72,7 @@ public class AccountDAO {
         return null;
     }
 
+    // Verify that a username does not exist in the database
     public boolean verifyUsernameDoesNOTExist(String username) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 

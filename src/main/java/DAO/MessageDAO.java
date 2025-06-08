@@ -1,6 +1,7 @@
 package DAO;
 
 import Model.Message;
+
 import Util.ConnectionUtil;
 
 import java.sql.*;
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class MessageDAO { 
 
+    // Insert/create a new message into the database
     public Message createMessage(Message message) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 
@@ -34,6 +36,7 @@ public class MessageDAO {
         return null;
     }
 
+    // Delete message in database by message id 
     public Message deleteMessageByMessageById(int message_id) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 
@@ -43,7 +46,7 @@ public class MessageDAO {
             ResultSet rs = ps1.executeQuery(); 
 
             if (rs.next()) {
-                String sql2 = "delete message where message_id = ?";
+                String sql2 = "delete from message where message_id = ?";
                 PreparedStatement ps2 = conn.prepareStatement(sql2);
                 ps2.setInt(1, message_id);  
                 ps2.executeUpdate(); 
@@ -61,33 +64,12 @@ public class MessageDAO {
         return null;
     }  
 
+    // Delete message in database by Message object
     public Message deleteMessageByMessage(Message message) {
-        Connection conn = ConnectionUtil.getConnection(); 
-        try { 
-            String sql1 = "select * from message where message_id = ?";
-            PreparedStatement ps1 = conn.prepareStatement(sql1);
-            ps1.setInt(1, message.getMessage_id());
-            ResultSet rs = ps1.executeQuery(); 
-
-            if (rs.next()) {
-                String sql2 = "delete message where message_id = ?";
-                PreparedStatement ps2 = conn.prepareStatement(sql2);
-                ps2.setInt(1, message.getMessage_id());  
-                ps2.executeUpdate(); 
-
-                return new Message(rs.getInt("message_id"), 
-                                    rs.getInt("posted_by"), 
-                                    rs.getString("message_text"),
-                                    rs.getLong("time_posted_epoch"));
-
-            }
-        } 
-        catch(SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return null;
+        return this.deleteMessageByMessageById(message.getMessage_id());
     }  
 
+    // Get all messages by post_by  
     public List<Message> getAllMessagesPostedBy(int postedBy) {
         Connection conn = ConnectionUtil.getConnection();
         List<Message> messages = new ArrayList<>(); 
@@ -110,6 +92,7 @@ public class MessageDAO {
         return messages;
     }
 
+    // Get all messages in the database
     public List<Message> getAllMessagesInDB() {
         Connection conn = ConnectionUtil.getConnection();
         List<Message> messages = new ArrayList<>(); 
@@ -133,6 +116,7 @@ public class MessageDAO {
 
     // TODO: should I be passing in a Message class object or is passing in the int message_id
     //       and String message_text okay?  
+    // Update message in the database text by message id
     public Message updateMessageTextByMessageId(int message_id, String message_text) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 
@@ -141,6 +125,7 @@ public class MessageDAO {
             ps.setString(1, message_text);  
             ps.setInt(2, message_id);
             ps.executeUpdate(); 
+            
             sql = "select * from message where message_id = ?";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, message_id); 
@@ -158,35 +143,16 @@ public class MessageDAO {
         return null;
     }
  
+    // Update message in the database text by Message object 
     public Message updateMessageTextByMessage(Message message) {
-        Connection conn = ConnectionUtil.getConnection(); 
-        try { 
-            String sql = "update message set message_text = ? where message_id = ?";
-            PreparedStatement ps = conn.prepareStatement(sql); 
-            ps.setString(1, message.getMessage_text());  
-            ps.setInt(2, message.getMessage_id());
-            ps.executeUpdate(); 
-            sql = "select * from message where message_id = ?";
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, message.getMessage_id()); 
-            ResultSet rs = ps.executeQuery(); 
-            if (rs.next()) {
-                return new Message(rs.getInt("message_id"), 
-                                    rs.getInt("posted_by"), 
-                                    rs.getString("message_text"),
-                                    rs.getLong("time_posted_epoch")); 
-            } 
-        } 
-        catch(SQLException e) {
-            System.out.println(e.getMessage());
-        }
-        return null;
+        return this.updateMessageTextByMessageId(message.getMessage_id(), message.getMessage_text());
     }
 
+    // Get a message by message_id
     public Message getMessageByMessageId(int message_id) {
         Connection conn = ConnectionUtil.getConnection(); 
         try { 
-            String sql = "select message_id, posted_by, message_text, time_posted_epoch from message where message_id = ?";
+            String sql = "select * from message where message_id = ?";
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, message_id); 
             ResultSet rs = ps.executeQuery();

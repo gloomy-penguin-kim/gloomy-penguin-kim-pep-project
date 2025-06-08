@@ -51,9 +51,7 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>4.9.0</version>
-        </dependency>
-
-
+        </dependency> 
     </dependencies>
 
     <build>

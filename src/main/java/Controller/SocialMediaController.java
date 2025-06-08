@@ -15,7 +15,6 @@ import io.javalin.http.Context;
  
 public class SocialMediaController {
 
-    //  TODO:  is it okay to put these on the class?  I worry about asnyc 
     private final AccountService accountService = new AccountService();
     private final MessageService messageService = new MessageService();
   
@@ -37,8 +36,7 @@ public class SocialMediaController {
         return app;
     }
 
-    // Account login 
-    // bodyParam: username and password
+    // Account login   
     private void accountLogin(Context ctx) { 
         Account account = ctx.bodyAsClass(Account.class); 
         Account loggedIn = accountService.loginWithAccount(account); 
@@ -50,15 +48,15 @@ public class SocialMediaController {
         }
     }
 
-    // Account register 
-    // bodyParam: username and password
+    // TODO: would it be helpful to add something like logging to the project? 
+
+    // Account register  
     private void accoountRegister(Context ctx) { 
         Account account = ctx.bodyAsClass(Account.class); 
         if (account.username.length() == 0 || account.password.length() < 4) {
             ctx.status(400); 
             return; 
         }  
-
         Account created = accountService.accountRegister(account); 
         if (created != null) {
             ctx.status(200).json(created); 
@@ -67,8 +65,8 @@ public class SocialMediaController {
             ctx.status(400); 
         } 
     }
- 
-    // Create Message  
+  
+    // Create Message   
     private void createMessage(Context ctx) { 
         Message message = ctx.bodyAsClass(Message.class); 
         if (!isValidMessageText(message.getMessage_text())) {
@@ -90,20 +88,20 @@ public class SocialMediaController {
         }   
     }
 
-    // List all the messages in the database
+    // List all the messages in the database 
     private void getAllMessagesInDB(Context ctx) {  
         List<Message> messages = messageService.getAllMessagesInDB(); 
         ctx.status(200).json(messages);
     }
 
-    // List all the messages by post_by 
+    // List all the messages by post_by  
     private void getAllMessagesPostedBy(Context ctx) { 
         int posted_by = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("posted_by"))); 
         List<Message> messages = messageService.getAllMessagesPostedBy(posted_by); 
         ctx.status(200).json(messages); 
     }
  
-    // Delete messages by message_id
+    // Delete messages by message_id 
     private void deleteMessageByMessageId(Context ctx) { 
         int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id"))); 
         Message deleted = messageService.deleteMessageByMessageId(message_id); 
@@ -115,7 +113,7 @@ public class SocialMediaController {
         }
     }
 
-    // Get message by message_id 
+    // Get message by message_id  
     private void getMessageByMessageId(Context ctx) { 
         int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id"))); 
         Message message = messageService.getMessageByMessageId(message_id); 
@@ -127,7 +125,7 @@ public class SocialMediaController {
         }
     }
 
-    // Update message text with message_id
+    // Update message text with message_id 
     private void updateMessage(Context ctx) { 
         int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id")));
         Message message = ctx.bodyAsClass(Message.class); 
