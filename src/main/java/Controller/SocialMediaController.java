@@ -14,9 +14,19 @@ import io.javalin.http.Context;
 
  
 public class SocialMediaController {
+
+    //  TODO:  is it okay to put these on the class?  I worry about asnyc 
+    private final AccountService accountService = new AccountService();
+    private final MessageService messageService = new MessageService();
   
     public Javalin startAPI() {
         Javalin app = Javalin.create();
+        
+        // Account routes
+        app.post("login", this::accountLogin);
+        app.post("register", this::accoountRegister); 
+
+        // Message routes
         app.post("messages", this::createMessage); 
         app.get("messages", this::getAllMessagesInDB);
         app.get("accounts/{posted_by}/messages", this::getAllMessagesPostedBy);
@@ -24,106 +34,119 @@ public class SocialMediaController {
         app.delete("messages/{message_id}", this::deleteMessageByMessageId);
         app.patch("messages/{message_id}", this::updateMessage);
 
-        app.post("login", this::accountLogin);
-        app.post("register", this::accoountRegister);
         return app;
     }
 
-    private void accountLogin(Context context) { 
-        Account account = context.bodyAsClass(Account.class);
-        AccountService as = new AccountService(); 
-        Account accountResponse = as.loginWithAccount(account); 
-        if (accountResponse != null) {
-            context.json(accountResponse).status(200); 
+    // Account login 
+    // bodyParam: username and password
+    private void accountLogin(Context ctx) { 
+        Account account = ctx.bodyAsClass(Account.class); 
+        Account loggedIn = accountService.loginWithAccount(account); 
+        if (loggedIn != null) {
+            ctx.status(200).json(loggedIn); 
         }
         else {
-            context.status(401); 
+            ctx.status(401); 
         }
     }
 
-    private void accoountRegister(Context context) { 
-        Account account = context.bodyAsClass(Account.class);
-
+    // Account register 
+    // bodyParam: username and password
+    private void accoountRegister(Context ctx) { 
+        Account account = ctx.bodyAsClass(Account.class); 
         if (account.username.length() == 0 || account.password.length() < 4) {
-            context.status(400); 
+            ctx.status(400); 
+            return; 
+        }  
+
+        Account created = accountService.accountRegister(account); 
+        if (created != null) {
+            ctx.status(200).json(created); 
         }
         else {
-            AccountService as = new AccountService(); 
-            Account accountResponse = as.accountRegister(account); 
-            if (accountResponse != null) {
-                context.json(accountResponse).status(200); 
-            }
-            else {
-                context.status(400); 
-            }
-        }
+            ctx.status(400); 
+        } 
     }
  
-
-    private void createMessage(Context context) { 
-        Message message = context.bodyAsClass(Message.class);
-        if (message.getMessage_text().length() == 0 || message.getMessage_text().length() > 255) {
-            context.status(400).result(); 
-        }
-        else { 
-            try {
-                MessageService ms = new MessageService();  
-                Message messageResult = ms.createMessage(message); 
-                context.json(messageResult).status(200); 
-            }
-            catch (Exception e) {
-                context.status(400).result(); 
-            }  
-        }
-    }
-
-    private void getAllMessagesInDB(Context context) { 
-        MessageService ms = new MessageService(); 
-        List<Message> allMessages = ms.getAllMessagesInDB(); 
-        context.json(allMessages).status(200);
-    }
-
-    private void getAllMessagesPostedBy(Context context) { 
-        int posted_by = Integer.parseInt(Objects.requireNonNull(context.pathParam("posted_by")));
-        MessageService ms = new MessageService();  
-        List<Message> messages = ms.getAllMessagesPostedBy(posted_by); 
-        context.json(messages).status(200); 
-    }
-
-    private void deleteMessageByMessageId(Context context) { 
-        int message_id = Integer.parseInt(Objects.requireNonNull(context.pathParam("message_id")));
-        MessageService ms = new MessageService();  
-        Message message = ms.getMessageByMessageId(message_id);
-        if (message != null) {
-            ms.deleteMessageByMessageId(message_id); 
-            context.json(message).status(200); 
-        }
-        else context.status(200); 
-    }
-
-    private void getMessageByMessageId(Context context) { 
-        int message_id = Integer.parseInt(Objects.requireNonNull(context.pathParam("message_id")));
-        MessageService ms = new MessageService();  
-        Message messages = ms.getMessageByMessageId(message_id); 
-        if (messages != null) context.json(messages).status(200); 
-        else context.status(200); 
-    }
-
-    private void updateMessage(Context context) { 
-        int message_id = Integer.parseInt(Objects.requireNonNull(context.pathParam("message_id")));
-        Message message = context.bodyAsClass(Message.class); 
-        if (message.getMessage_text().length() == 0 || message.getMessage_text().length() > 255) {
-            context.status(400); 
+    // Create Message  
+    private void createMessage(Context ctx) { 
+        Message message = ctx.bodyAsClass(Message.class); 
+        if (!isValidMessageText(message.getMessage_text())) {
+            ctx.status(400); 
+            return;
         } 
+        try {  
+            Message created = messageService.createMessage(message); 
+            if (created != null) {
+                ctx.status(200).json(created); 
+            }
+            else {
+                ctx.status(400); 
+            }
+        }
+        catch (Exception e) {
+            ctx.status(400); 
+            return;
+        }   
+    }
+
+    // List all the messages in the database
+    private void getAllMessagesInDB(Context ctx) {  
+        List<Message> messages = messageService.getAllMessagesInDB(); 
+        ctx.status(200).json(messages);
+    }
+
+    // List all the messages by post_by 
+    private void getAllMessagesPostedBy(Context ctx) { 
+        int posted_by = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("posted_by"))); 
+        List<Message> messages = messageService.getAllMessagesPostedBy(posted_by); 
+        ctx.status(200).json(messages); 
+    }
+ 
+    // Delete messages by message_id
+    private void deleteMessageByMessageId(Context ctx) { 
+        int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id"))); 
+        Message deleted = messageService.deleteMessageByMessageId(message_id); 
+        if (deleted != null) {
+            ctx.status(200).json(deleted); 
+        }
         else {
-            MessageService ms = new MessageService();  
-            Message messageResponse = ms.updateMessageTextByMessageId(message_id, message.getMessage_text()); 
-            if (messageResponse != null) context.json(messageResponse).status(200); 
-            else context.status(400); 
+            ctx.status(200); 
         }
     }
 
+    // Get message by message_id 
+    private void getMessageByMessageId(Context ctx) { 
+        int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id"))); 
+        Message message = messageService.getMessageByMessageId(message_id); 
+        if (message != null) {
+            ctx.status(200).json(message); 
+        }
+        else {
+            ctx.status(200); 
+        }
+    }
 
+    // Update message text with message_id
+    private void updateMessage(Context ctx) { 
+        int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id")));
+        Message message = ctx.bodyAsClass(Message.class); 
+        if (!isValidMessageText(message.getMessage_text())) {
+            ctx.status(400); 
+            return;
+        }   
+        Message updated = messageService.updateMessageTextByMessageId(message_id, message.getMessage_text()); 
+        if (updated != null) {
+            ctx.json(updated).status(200); 
+        }
+        else {
+            ctx.status(400); 
+        }
+    }
 
+    // Utility function for valid message text
+    private boolean isValidMessageText(String text) { 
+        return text != null && !text.isEmpty() && text.length() <= 255; 
+    }
 
 }

@@ -14,14 +14,13 @@ public class MessageService {
     public MessageService(MessageDAO messsageDAO){
         this.messsageDAO = messsageDAO;
     } 
-
     public Message createMessage(Message message) {
         return this.messsageDAO.createMessage(message);
     }
-    public boolean deleteMessageByMessageId(int messageId) {
-        return this.messsageDAO.deleteMessageByMessageId(messageId); 
+    public Message deleteMessageByMessageId(int messageId) {
+        return this.messsageDAO.deleteMessageByMessageById(messageId); 
     }
-    public boolean deleteMessageByMessage(Message message) {
+    public Message deleteMessageByMessage(Message message) {
         return this.messsageDAO.deleteMessageByMessage(message); 
     }
     public List<Message> getAllMessagesPostedBy(int postedBy) { 
@@ -35,5 +34,8 @@ public class MessageService {
     }
     public Message updateMessageTextByMessageId(int message_id, String message_text) {
         return this.messsageDAO.updateMessageTextByMessageId(message_id, message_text);
+    } 
+    public Message updateMessageTextByMessage(Message message) {
+        return this.messsageDAO.updateMessageTextByMessage(message);
     } 
 }

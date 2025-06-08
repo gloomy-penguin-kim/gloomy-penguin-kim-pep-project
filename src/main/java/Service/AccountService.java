@@ -12,6 +12,9 @@ public class AccountService {
     public AccountService(AccountDAO accountDAO){
         this.accountDAO = accountDAO;
     } 
+
+    // TODO:  is this data usually in a class object by now?  or is it okay they are 
+    //          still floating around as username and password strings? 
     public Account loginWithUsernameAndPassword(String username, String password) {
         return this.accountDAO.loginWithUsernameAndPassword(username, password);
     }
