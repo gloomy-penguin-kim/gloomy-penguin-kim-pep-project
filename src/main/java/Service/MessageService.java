@@ -30,7 +30,10 @@ public class MessageService {
     public List<Message> getAllMessagesInDB() { 
         return this.messsageDAO.getAllMessagesInDB(); 
     }
-    public List<Message> getMessageByMessageId(int message_id) { 
+    public Message getMessageByMessageId(int message_id) { 
         return this.messsageDAO.getMessageByMessageId(message_id); 
     }
+    public Message updateMessageTextByMessageId(int message_id, String message_text) {
+        return this.messsageDAO.updateMessageTextByMessageId(message_id, message_text);
+    } 
 }

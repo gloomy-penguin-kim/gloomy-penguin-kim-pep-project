@@ -18,8 +18,8 @@ public class AccountService {
     public Account loginWithAccount(Account account) {
         return this.accountDAO.loginWithAccount(account);
     }
-    public Account createAccount(Account account) { 
-        return this.accountDAO.createAccount(account); 
+    public Account accountRegister(Account account) { 
+        return this.accountDAO.accountRegister(account); 
     }
     public boolean verifyUsernameDoesNOTExist(String username) {
         return this.accountDAO.verifyUsernameDoesNOTExist(username); 
