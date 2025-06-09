@@ -1,20 +1,18 @@
 package Service;
 
 import Model.Account;
-import DAO.AccountDAO; 
+import DAO.AccountDAO;  
+
 
 public class AccountService {
-    private AccountDAO accountDAO; 
+    private AccountDAO accountDAO;  
 
     public AccountService(){
         accountDAO = new AccountDAO();
     } 
     public AccountService(AccountDAO accountDAO){
         this.accountDAO = accountDAO;
-    } 
-
-    // TODO:  is this data usually in a class object by now?  or is it okay they are 
-    //          still floating around as username and password strings? 
+    }  
     
     // Log in with String username and String Password
     public Account loginWithUsernameAndPassword(String username, String password) {
@@ -28,6 +26,11 @@ public class AccountService {
 
     // Register account with Account Object
     public Account accountRegister(Account account) { 
+        // I originally had this logic in the Controller but then I decided to ask during 
+        // office hours where the business logic goes and he said definitely at Service level 
+        if (!isValidUserName(account.getUsername()) || !isValidPassword(account.getPassword())) {
+            return null; 
+        }
         return this.accountDAO.accountRegister(account); 
     }
 
@@ -35,4 +38,12 @@ public class AccountService {
     public boolean verifyUsernameDoesNOTExist(String username) {
         return this.accountDAO.verifyUsernameDoesNOTExist(username); 
     }  
+ 
+    private boolean isValidUserName(String username) {
+        return username.length() > 0; 
+    }
+
+    private boolean isValidPassword(String password) {
+        return password.length() >= 4; 
+    } 
 }

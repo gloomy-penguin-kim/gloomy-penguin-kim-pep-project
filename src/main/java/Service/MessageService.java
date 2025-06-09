@@ -13,13 +13,16 @@ public class MessageService {
     } 
     public MessageService(MessageDAO messsageDAO){
         this.messsageDAO = messsageDAO;
-    } 
-
-    // TODO: should I also have logic in here for the business rules that a  message text
-    //          cannot be blank and cnannot be longer than 255 characters?
+    }  
     
     // Create message by Message object 
     public Message createMessage(Message message) {
+        // I would throw a custom Exception here for invalid message text
+        // but I feel like that would be taking the project too far off course 
+        // and the API tests say no error message with the 400 status code
+        if (!isValidMessageText(message.getMessage_text())) {
+            return null; 
+        }
         return this.messsageDAO.createMessage(message);
     }
 
@@ -50,11 +53,23 @@ public class MessageService {
 
     // Update message text by message id
     public Message updateMessageTextByMessageId(int message_id, String message_text) {
+        if (!isValidMessageText(message_text)) {
+            return null; 
+        }
         return this.messsageDAO.updateMessageTextByMessageId(message_id, message_text);
     } 
 
     // Update message text by Message object
     public Message updateMessageTextByMessage(Message message) {
+        if (!isValidMessageText(message.getMessage_text())) {
+            return null; 
+        }
         return this.messsageDAO.updateMessageTextByMessage(message);
+    } 
+
+
+    // Business rules at Service Level as instructed and in one location 
+    private boolean isValidMessageText(String text) {
+        return text != null && !text.isEmpty() && text.length() <= 255; 
     } 
 }

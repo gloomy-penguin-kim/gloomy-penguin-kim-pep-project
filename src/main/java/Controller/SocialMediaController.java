@@ -28,10 +28,11 @@ public class SocialMediaController {
         // Message routes
         app.post("messages", this::createMessage); 
         app.get("messages", this::getAllMessagesInDB);
-        app.get("accounts/{posted_by}/messages", this::getAllMessagesPostedBy);
         app.get("messages/{message_id}", this::getMessageByMessageId);
         app.delete("messages/{message_id}", this::deleteMessageByMessageId);
         app.patch("messages/{message_id}", this::updateMessage);
+
+        app.get("accounts/{posted_by}/messages", this::getAllMessagesPostedBy);
 
         return app;
     }
@@ -46,19 +47,15 @@ public class SocialMediaController {
         else {
             ctx.status(401); 
         }
-    }
+    } 
 
-    // TODO: would it be helpful to add something like logging to the project? 
-
-    // Account register  
+    // Account register - business rules at Service level 
     private void accoountRegister(Context ctx) { 
         Account account = ctx.bodyAsClass(Account.class); 
-        if (account.username.length() == 0 || account.password.length() < 4) {
-            ctx.status(400); 
-            return; 
-        }  
         Account created = accountService.accountRegister(account); 
         if (created != null) {
+            // this does pass back the password in plain text, btw  
+            // but it is the only way to pass the test right now
             ctx.status(200).json(created); 
         }
         else {
@@ -69,23 +66,13 @@ public class SocialMediaController {
     // Create Message   
     private void createMessage(Context ctx) { 
         Message message = ctx.bodyAsClass(Message.class); 
-        if (!isValidMessageText(message.getMessage_text())) {
-            ctx.status(400); 
-            return;
-        } 
-        try {  
-            Message created = messageService.createMessage(message); 
-            if (created != null) {
-                ctx.status(200).json(created); 
-            }
-            else {
-                ctx.status(400); 
-            }
+        Message created = messageService.createMessage(message); 
+        if (created != null) { 
+            ctx.status(200).json(created); 
         }
-        catch (Exception e) {
+        else {
             ctx.status(400); 
-            return;
-        }   
+        }
     }
 
     // List all the messages in the database 
@@ -116,35 +103,27 @@ public class SocialMediaController {
     // Get message by message_id  
     private void getMessageByMessageId(Context ctx) { 
         int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id"))); 
-        Message message = messageService.getMessageByMessageId(message_id); 
-        if (message != null) {
-            ctx.status(200).json(message); 
+        Message fetched = messageService.getMessageByMessageId(message_id); 
+        if (fetched != null) {
+            ctx.status(200).json(fetched); 
         }
         else {
             ctx.status(200); 
         }
     }
 
-    // Update message text with message_id 
+    // Update message text with message_id - business rules at service level 
     private void updateMessage(Context ctx) { 
         int message_id = Integer.parseInt(Objects.requireNonNull(ctx.pathParam("message_id")));
         Message message = ctx.bodyAsClass(Message.class); 
-        if (!isValidMessageText(message.getMessage_text())) {
-            ctx.status(400); 
-            return;
-        }   
-        Message updated = messageService.updateMessageTextByMessageId(message_id, message.getMessage_text()); 
+        message.setMessage_id(message_id);
+        Message updated = messageService.updateMessageTextByMessage(message); 
         if (updated != null) {
             ctx.json(updated).status(200); 
         }
         else {
             ctx.status(400); 
         }
-    }
-
-    // Utility function for valid message text
-    private boolean isValidMessageText(String text) { 
-        return text != null && !text.isEmpty() && text.length() <= 255; 
     }
 
 }

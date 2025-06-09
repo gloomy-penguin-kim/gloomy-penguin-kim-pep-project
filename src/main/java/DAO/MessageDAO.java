@@ -113,9 +113,7 @@ public class MessageDAO {
         }
         return messages;
     }
-
-    // TODO: should I be passing in a Message class object or is passing in the int message_id
-    //       and String message_text okay?  
+ 
     // Update message in the database text by message id
     public Message updateMessageTextByMessageId(int message_id, String message_text) {
         Connection conn = ConnectionUtil.getConnection(); 
